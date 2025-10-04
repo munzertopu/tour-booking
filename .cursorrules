@@ -1,0 +1,173 @@
+# Cursor Rules for Japan Tour Booking Website
+
+# Framework & Stack
+framework: Next.js 15 (App Router)
+language: TypeScript
+db: PostgreSQL with Prisma ORM (Neon as hosting)
+auth: NextAuth.js with Credentials and OAuth (Google, GitHub)
+uploads: Cloudinary for image storage
+ui: Tailwind CSS + shadcn/ui
+animations: Framer Motion for transitions (fade-in, slide-up, hover lifts)
+state: React Server Components with minimal client usage
+deployment: Vercel
+
+# General Guidelines
+- Always use TypeScript with strict mode.
+- Use Next.js App Router conventions (app/api, app/dashboard, app/auth, etc.).
+- Keep server logic in `app/api/*` routes with Prisma.
+- Do not use `getServerSideProps` or Pages Router.
+- Enforce ESLint + Prettier with conventional commits.
+- Always validate request body using Zod before DB operations.
+- Use try/catch in all async API routes.
+- Return typed responses with NextResponse.
+- Use `no-store` caching for dynamic fetches.
+- Never expose secrets in frontend code.
+- Ensure future extensibility for Payment Gateway integration.
+
+# Role-based Access
+- ADMIN: Manage tours, guides, users, and bookings.
+- GUIDE: Create/manage their own tours and view their bookings.
+- USER: Browse tours, make bookings, leave reviews.
+
+# Database & Prisma
+- Use `schema.prisma` with clear relations:
+  - User (role: ADMIN | GUIDE | USER)
+  - Tour (belongs to Guide, has many Bookings, has Reviews)
+  - Booking (belongs to User & Tour)
+  - Review (belongs to User & Tour)
+- Always run `npx prisma migrate dev` after schema changes.
+- Use `include` for relational queries to avoid N+1.
+- Use UUID as default id for all models.
+
+# Auth
+- Use NextAuth with JWT strategy.
+- Store role in session.
+- Middleware should protect routes based on role.
+- Example: `/dashboard/admin` requires ADMIN, `/dashboard/guide` requires GUIDE.
+
+# Features
+- Tours:
+  - Title, Description, Price, Duration, Location (Japan-focused), Images, Available Dates, Max Capacity.
+- Booking:
+  - User selects available date.
+  - Checks against max capacity.
+  - Creates booking with status = PENDING, CONFIRMED, or CANCELLED.
+- Reviews:
+  - User can leave rating + comment after confirmed booking.
+- Dashboard:
+  - Admin: Manage all tours, bookings, users.
+  - Guide: Manage their tours and bookings.
+  - User: Manage their bookings and reviews.
+
+# Cloudinary
+- Always upload images from the client via signed upload.
+- Store only Cloudinary URL in DB.
+
+# Design Rules (Planet Travel System)
+- Always follow the `design-system.json` file.
+- Colors: Blue for trust, Yellow for accents, Neutral for balance.
+- Typography: Inter, bold headings, readable body text.
+- Spacing: 16px multiples, section padding defined in design system.
+- Layout: 12-column responsive grid, mobile-first.
+- Components: Header, Hero, TourCard, Section, Testimonial, Footer.
+- Animations: fade-in on scroll, slide-up for cards, hover lifts.
+- Accessibility: Alt text for all images, keyboard accessible, contrast > 4.5:1.
+- Motion accents: subtle, smooth, non-distracting.
+
+# Best Practices
+- Keep business logic on the server side.
+- Split components into server (data fetching) and client (interactive).
+- Use React hooks minimally, only when needed.
+- Use Tailwind + shadcn/ui for styling, never raw CSS.
+- Use proper error boundaries in critical UI components.
+- Prefer async/await over promises.
+- Never hardcode API URLs, always use env vars.
+
+# Deployment
+- Vercel for frontend + API.
+- Neon for Postgres.
+- Cloudinary for media storage.
+- Store secrets in `.env` and never commit them.
+
+# Phase Plan
+phase_1: 
+  description: "Landing Page + Tour Booking Flow"
+  tasks:
+    - Scaffold landing page (Header, Hero, Popular Destinations, Testimonials, Footer)
+    - Generate TourCard and Hero components
+    - Build tour detail page (overview, itinerary, images)
+    - Create booking form flow (select dates, traveler info, review & confirm)
+    - Integrate animations and responsive layout
+phase_2:
+  description: "Dashboard and User Management"
+  tasks:
+    - Admin dashboard: Manage tours, bookings, users
+    - Guide dashboard: Manage own tours and bookings
+    - User dashboard: View bookings and reviews
+phase_3:
+  description: "Advanced Features & Payment Integration"
+  tasks:
+    - Add payment gateway (Stripe or similar)
+    - Add review system
+    - Notifications for bookings
+    - Analytics for admin
+
+# Japan Content JSON
+content:
+  hero:
+    title: "Explore Japan Like Never Before"
+    subtitle: "Discover stunning landscapes, vibrant cities, and unique cultural experiences"
+    cta: "Start Your Journey"
+    backgroundImage: "https://res.cloudinary.com/demo/image/upload/v1699999999/japan-hero.jpg"
+    icons:
+      - "https://res.cloudinary.com/demo/image/upload/v1699999999/temple-icon.png"
+      - "https://res.cloudinary.com/demo/image/upload/v1699999999/mount-fuji-icon.png"
+      - "https://res.cloudinary.com/demo/image/upload/v1699999999/sushi-icon.png"
+  popularDestinations:
+    - title: "Tokyo"
+      description: "Experience the vibrant city life and iconic landmarks."
+      image: "https://res.cloudinary.com/demo/image/upload/v1699999999/tokyo.jpg"
+      price: 1200
+      duration: "5 Days"
+    - title: "Kyoto"
+      description: "Explore ancient temples, gardens, and traditional culture."
+      image: "https://res.cloudinary.com/demo/image/upload/v1699999999/kyoto.jpg"
+      price: 1000
+      duration: "4 Days"
+    - title: "Hokkaido"
+      description: "Discover snowy mountains, hot springs, and fresh seafood."
+      image: "https://res.cloudinary.com/demo/image/upload/v1699999999/hokkaido.jpg"
+      price: 1500
+      duration: "6 Days"
+  tourDetail:
+    overview: "Immerse yourself in the beauty of Japan. From bustling cities to serene landscapes, experience everything this amazing country has to offer."
+    itinerary:
+      - "Day 1: Arrival in Tokyo and city tour"
+      - "Day 2: Explore temples and gardens in Kyoto"
+      - "Day 3: Visit Mount Fuji and Lake Kawaguchi"
+      - "Day 4: Enjoy Hokkaido's snow and hot springs"
+      - "Day 5: Departure from Tokyo"
+    images:
+      - "https://res.cloudinary.com/demo/image/upload/v1699999999/tour1.jpg"
+      - "https://res.cloudinary.com/demo/image/upload/v1699999999/tour2.jpg"
+      - "https://res.cloudinary.com/demo/image/upload/v1699999999/tour3.jpg"
+  bookingFlow:
+    steps:
+      - title: "Select Dates"
+        description: "Pick your preferred travel dates from available slots."
+      - title: "Traveler Information"
+        description: "Enter traveler names, emails, and phone numbers."
+      - title: "Review & Confirm"
+        description: "Check your tour details and confirm your booking."
+    cta: "Continue to Payment"
+  testimonials:
+    - name: "Sakura Tanaka"
+      rating: 5
+      quote: "An unforgettable journey! The guides were amazing and the tours were perfectly organized."
+    - name: "Hiroshi Yamamoto"
+      rating: 4
+      quote: "Beautiful locations and well-planned itinerary. Highly recommend for first-time visitors."
+  ctaSection:
+    title: "Ready to Explore Japan?"
+    subtitle: "Book your dream tour today and create memories that last a lifetime."
+    button: "Get Started"
